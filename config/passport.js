@@ -1,6 +1,8 @@
 var passport = require('passport');
 var User = require('../models/user');
+var {body, validationResult} = require('express-validator');
 var LocalStrategy = require('passport-local').Strategy;
+
 
 passport.serializeUser(function (user, done) {
   done(null, user.id);
@@ -23,6 +25,23 @@ passport.use('local.signup', new LocalStrategy({
   passwordField: 'password',
   passReqToCallback: true
 }, function (req, email, password, done) {
+
+  body('email').notEmpty().isEmail().withMessage("Invalid Email");
+  body('password').isStrongPassword().withMessage("Invalid Password");
+  
+  const errors = validationResult(req);
+
+
+  console.log(errors);
+  if (errors) {
+    var messages = [];
+    Array(errors.errors).forEach(function(error) {
+      console.log(error);
+      messages.push(error.msg);
+    });
+    return done(null, false, req.flash('error', messages));
+  }
+
   User.findOne({ 'email': email })
     .then(
       function (user) {

@@ -1,5 +1,8 @@
 var express = require('express');
 var router = express.Router();
+
+var {body, validationResult} = require('express-validator');
+
 var Product = require('../models/product');
 var passport = require('passport');
 var csrf = require('@dr.pogodin/csurf');
