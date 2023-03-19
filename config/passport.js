@@ -1,6 +1,7 @@
 var passport = require('passport');
 var User = require('../models/user');
 var {body, validationResult} = require('express-validator');
+var {formatter} = require('express-validator');
 var LocalStrategy = require('passport-local').Strategy;
 
 
@@ -29,7 +30,7 @@ passport.use('local.signup', new LocalStrategy({
   body('email').notEmpty().isEmail().withMessage("Invalid Email");
   body('password').isStrongPassword().withMessage("Invalid Password");
   
-  const errors = validationResult(req);
+  const errors = validationResult(req).formatWith(formatter);
 
 
   console.log(errors);
@@ -70,3 +71,36 @@ passport.use('local.signup', new LocalStrategy({
       });
 })
 );
+
+passport.use('local.signin', new LocalStrategy({
+  usernameField: 'email',
+  passwordField: 'password',
+  passReqToCallback: true
+}, function (req, email, password, done) {
+  body('email').notEmpty().isEmail().withMessage("Invalid Email Address");
+  body('password').notEmpty().isStrongPassword().withMessage("Not a Strong password");
+
+  var errors = validationResult(req).formatWith(formatter);
+
+  if (errors) {
+    var messages = [];
+    Array(errors.errors).forEach(function (error) {
+      messages.push(error.msg);
+    });
+    return done(null, false, req.flash('error', messages));
+  }
+
+  User.findOne({'email': email})
+  .then(
+    function (user) {
+      if (!user) {
+        return done(null, false, {message: "User not found"});
+      } else if (!user.validPassword(password)) {
+        return done(null, false, {message: "Invalid Password"});
+      }
+
+      return done(null, user);
+    }
+
+  )
+}));
