@@ -5,6 +5,7 @@ var {body, validationResult} = require('express-validator');
 
 var Product = require('../models/product');
 var csrf = require('@dr.pogodin/csurf');
+var Cart = require('../models/cart');
 
 
 /* GET home page. */
@@ -21,5 +22,26 @@ router.get('/', async function(req, res, next) {
   });
 });
 
+router.get('/add-to-cart/:id', function (req, res, next) {
+  var productId = req.params.id;
+  var cart = new Cart(req.session.cart ? req.session.cart : {});
+
+  Product.findById(productId)
+  .then(
+    function(product) {
+      if (product) {
+        cart.add(product, product.id);
+        req.session.cart = cart;
+        console.log(req.session.cart);
+        res.redirect('/');
+
+      }
+    },
+
+    function (err) {
+      return res.redirect("/");
+    }
+  );
+});
 
 module.exports = router;

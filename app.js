@@ -9,7 +9,7 @@ var session = require('express-session');
 var passport = require('passport');
 var flash = require('connect-flash');
 var {check} = require('express-validator');
-var MongoStore = require('connect-mongo')(session);
+var MongoStore = require('connect-mongo');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/user');
@@ -33,7 +33,7 @@ app.use(session({
   secret: 'mysupersecret',
   resave: false,
   saveUninitialized: false,
-  store: new MongoStore({ mongooseConnection: mongoose.connection }),
+  store: MongoStore.create({mongoUrl: 'mongodb://localhost:27017/shopping'}),
   cookie: { maxAge: 180 * 60 * 1000}
 }));
 app.use(flash());
