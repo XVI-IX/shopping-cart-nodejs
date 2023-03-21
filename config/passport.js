@@ -1,7 +1,6 @@
 var passport = require('passport');
 var User = require('../models/user');
-var {body, validationResult} = require('express-validator');
-var {formatter} = require('express-validator');
+var {validationResult} = require('express-validator');
 var LocalStrategy = require('passport-local').Strategy;
 
 
@@ -26,20 +25,21 @@ passport.use('local.signup', new LocalStrategy({
   passwordField: 'password',
   passReqToCallback: true
 }, function (req, email, password, done) {
-
-  body('email').notEmpty().isEmail().withMessage("Invalid Email");
-  body('password').isStrongPassword().withMessage("Invalid Password");
   
-  const errors = validationResult(req).formatWith(formatter);
-
+  // check('email', 'Invalid Email').notEmpty().isEmail();
+  // check('password', 'Invalid Password').isLength({min: 4});
+  
+  const errors = validationResult(req).array();
 
   console.log(errors);
   if (errors) {
     var messages = [];
-    Array(errors.errors).forEach(function(error) {
+    errors.forEach(function(error) {
       console.log(error);
       messages.push(error.msg);
     });
+
+    console.log(messages);
     return done(null, false, req.flash('error', messages));
   }
 
@@ -56,7 +56,7 @@ passport.use('local.signup', new LocalStrategy({
         newUser.password = newUser.encryptPassword(password);
         newUser.save()
           .then(
-            function (result) {
+            function (newUser) {
               return done(null, newUser);
             },
             function (err) {
@@ -77,16 +77,18 @@ passport.use('local.signin', new LocalStrategy({
   passwordField: 'password',
   passReqToCallback: true
 }, function (req, email, password, done) {
-  body('email').notEmpty().isEmail().withMessage("Invalid Email Address");
-  body('password').notEmpty().isStrongPassword().withMessage("Not a Strong password");
 
-  var errors = validationResult(req).formatWith(formatter);
+  const errors = validationResult(req).array();
 
+  console.log(errors);
   if (errors) {
     var messages = [];
-    Array(errors.errors).forEach(function (error) {
+    errors.forEach(function(error) {
+      console.log(error);
       messages.push(error.msg);
     });
+
+    console.log(messages);
     return done(null, false, req.flash('error', messages));
   }
 
@@ -94,13 +96,14 @@ passport.use('local.signin', new LocalStrategy({
   .then(
     function (user) {
       if (!user) {
-        return done(null, false, {message: "User not found"});
+        return done(null, false, { message: "User not found" });
       } else if (!user.validPassword(password)) {
-        return done(null, false, {message: "Invalid Password"});
+        return done(null, false, { message: "Invalid Password" });
       }
-
       return done(null, user);
+    },
+    function (err) {
+      return done(err);
     }
-
   )
 }));

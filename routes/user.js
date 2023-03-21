@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var csrf = require('@dr.pogodin/csurf');
 var passport = require('passport');
+var {body} = require('express-validator');
 
 var csrfProtection = csrf();
 router.use(csrfProtection);
@@ -11,7 +12,11 @@ router.get('/profile', isLoggedIn, function (req, res, next) {
 });
 
 router.get('/logout', isLoggedIn, function(req, res, next) {
-  req.logout();
+  req.logout(function (err){
+    if (err) {
+      return next(err);
+    }
+  });
   res.redirect('/');
 });
 
@@ -27,7 +32,10 @@ router.get('/signup', function(req, res, next) {
     hasErrors: messages.length > 0});
 });
 
-router.post('/signup', function(req, res, next) {
+router.post('/signup',
+  body('email', 'Invalid Email').notEmpty().isEmail(),
+  body('password', "Invalid Password").notEmpty().isLength({min: 4}),
+  function(req, res, next) {
   passport.authenticate('local.signup', {
   successRedirect: '/user/profile',
   failureRedirect: '/user/signup',
@@ -37,15 +45,18 @@ router.post('/signup', function(req, res, next) {
 
 
 router.get('/signin', function (req, res, next) {
-  var error = req.flash('error');
+  var messages = req.flash('error');
   res.render('user/signin', {
     csrfToken: req.csrfToken(),
-    messages: error,
-    hasErrors: error.length > 0
-  })
+    messages: messages,
+    hasErrors: messages.length > 0
+  });
 });
 
-router.post('/signin', function(res, req, next) {
+router.post('/signin',
+  body('email', "Invalid Email Address").notEmpty().isEmail(),
+  body('password', "Invalid Password").notEmpty().isLength({min: 4}),
+  function(res, req, next) {
   passport.authenticate ('local.signin', {
     successRedirect: '/user/profile',
     failureRedirect: '/user/signin',
