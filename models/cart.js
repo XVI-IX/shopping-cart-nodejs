@@ -17,8 +17,8 @@ module.exports = function Cart(oldCart) {
     storedItem.qty++;
     storedItem.price = storedItem.item.price * storedItem.qty;
     this.totalQty++;
-    this.totalPrice += storedItem.price;
-  }
+    this.totalPrice += storedItem.item.price;
+  };
 
   this.generateArray = function () {
     var arr = [];

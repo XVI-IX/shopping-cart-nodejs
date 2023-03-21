@@ -25,10 +25,7 @@ passport.use('local.signup', new LocalStrategy({
   passwordField: 'password',
   passReqToCallback: true
 }, function (req, email, password, done) {
-  
-  // check('email', 'Invalid Email').notEmpty().isEmail();
-  // check('password', 'Invalid Password').isLength({min: 4});
-  
+
   const errors = validationResult(req).array();
 
   console.log(errors);
@@ -95,6 +92,7 @@ passport.use('local.signin', new LocalStrategy({
   User.findOne({'email': email})
   .then(
     function (user) {
+      // console.log(user);
       if (!user) {
         return done(null, false, { message: "User not found" });
       } else if (!user.validPassword(password)) {

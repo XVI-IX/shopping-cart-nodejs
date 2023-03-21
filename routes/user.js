@@ -29,7 +29,7 @@ router.get('/signup', function(req, res, next) {
   res.render('user/signup', {
     csrfToken: req.csrfToken(),
     messages: messages,
-    hasErrors: messages.length > 0});
+    hasErrors: messages?.length > 0});
 });
 
 router.post('/signup',
@@ -49,7 +49,7 @@ router.get('/signin', function (req, res, next) {
   res.render('user/signin', {
     csrfToken: req.csrfToken(),
     messages: messages,
-    hasErrors: messages.length > 0
+    hasErrors: messages?.length > 0
   });
 });
 
